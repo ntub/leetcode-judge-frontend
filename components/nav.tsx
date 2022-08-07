@@ -1,3 +1,4 @@
+import { useSession, signOut } from 'next-auth/react'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faBars,
@@ -16,10 +17,11 @@ const toggleUploadModal = () => {
 }
 
 export default function Nav() {
+    const { data: session } = useSession();
+
     return (
         <nav>
             <div className="flex items-center justify-between bg-teal-500 p-6">
-
                 <a href="/" className="flex items-center flex-no-shrink text-white mr-6">
                     <svg className="fill-current h-8 w-8 mr-2" width="54" height="54" viewBox="0 0 54 54"
                         xmlns="http://www.w3.org/2000/svg">
@@ -28,41 +30,48 @@ export default function Nav() {
                     </svg>
                     <span className="font-semibold text-xl tracking-tight">Tailwind CSS</span>
                 </a>
-                <div className="flex items-center justify-end">
-                    <button onClick={toggleUploadModal} className="px-5 py-2 text-white hover:border-b hover:border-white hidden lg:block">
-                        上傳成績
-                    </button>
-                    <a href="#2" className="px-5 py-2 text-white hover:border-b hover:border-white hidden lg:block">
-                        解題記錄
-                    </a>
-                    <button className="flex items-center mx-2 lg:px-5 py-2 text-white hover:lg:border-b hover:lg:border-white" onClick={toggleDropdownMenu}>
-                        <div className="hidden lg:block">
-                            <FontAwesomeIcon icon={faUser} />
-                            <span className="mx-4">10446008</span>
-                            <FontAwesomeIcon icon={faCaretDown} />
-                        </div>
-                        <div className="lg:hidden">
-                            <FontAwesomeIcon icon={faBars} />
-                        </div>
-                    </button>
-                </div>
+
+                {
+                    session &&
+                    <div className="flex items-center justify-end">
+                        <button onClick={toggleUploadModal} className="px-5 py-2 text-white hover:border-b hover:border-white hidden lg:block">
+                            上傳成績
+                        </button>
+                        <a href="#2" className="px-5 py-2 text-white hover:border-b hover:border-white hidden lg:block">
+                            解題記錄
+                        </a>
+                        <button className="flex items-center mx-2 lg:px-5 py-2 text-white hover:lg:border-b hover:lg:border-white" onClick={toggleDropdownMenu}>
+                            <div className="hidden lg:block">
+                                <FontAwesomeIcon icon={faUser} />
+                                <span className="mx-4">{session.user.name}</span>
+                                <FontAwesomeIcon icon={faCaretDown} />
+                            </div>
+                            <div className="lg:hidden">
+                                <FontAwesomeIcon icon={faBars} />
+                            </div>
+                        </button>
+                    </div>
+                }
             </div>
-            <div id="dropdown" className="fixed w-full lg:w-auto lg:right-6 border border-gray-500 bg-white hidden">
-                <div className="flex flex-col">
-                    <a href="#profile" className="py-2 pl-4 pr-24 border border-gray-300 hover:bg-gray-200">
-                        個人資料
-                    </a>
-                    <button onClick={toggleUploadModal} className="py-2 pl-4 pr-24 border border-gray-300 hover:bg-gray-200 lg:hidden text-left">
-                        上傳成績
-                    </button>
-                    <a href="#profile" className="py-2 pl-4 pr-24 border border-gray-300 hover:bg-gray-200 lg:hidden">
-                        解題記錄
-                    </a>
-                    <a href="#logout" className="py-2 pl-4 pr-24 border border-gray-300 hover:bg-gray-200">
-                        登出
-                    </a>
+            {
+                session &&
+                <div id="dropdown" className="fixed w-full lg:w-auto lg:right-6 border border-gray-500 bg-white hidden">
+                    <div className="flex flex-col">
+                        <a href="#profile" className="py-2 pl-4 pr-24 border border-gray-300 hover:bg-gray-200">
+                            個人資料
+                        </a>
+                        <button onClick={toggleUploadModal} className="py-2 pl-4 pr-24 border border-gray-300 hover:bg-gray-200 lg:hidden text-left">
+                            上傳成績
+                        </button>
+                        <a href="#profile" className="py-2 pl-4 pr-24 border border-gray-300 hover:bg-gray-200 lg:hidden">
+                            解題記錄
+                        </a>
+                        <button onClick={signOut} className="py-2 pl-4 pr-24 border border-gray-300 hover:bg-gray-200 text-left">
+                            登出
+                        </button>
+                    </div>
                 </div>
-            </div>
+            }
         </nav>
     );
 }

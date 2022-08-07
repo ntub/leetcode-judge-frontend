@@ -37,5 +37,4 @@ const toggleUploadModal = () => {
 
 const submitForm = (event: any) => {
     event.preventDefault()
-    console.log(123)
 }

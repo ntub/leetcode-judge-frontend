@@ -7,13 +7,16 @@ config.autoAddCss = false;
 
 import Nav from '../components/nav'
 import UploadRecord from "../components/uploadRecord";
+import { SessionProvider } from "next-auth/react"
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <div>
-      <Nav/>
-      <Component {...pageProps} />
-      <UploadRecord/>
+      <SessionProvider session={pageProps.session}>
+        <Nav/>
+        <Component {...pageProps} />
+        <UploadRecord/>
+      </SessionProvider>
     </div>
   )
 }
