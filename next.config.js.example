@@ -4,7 +4,9 @@ const nextConfig = {
   swcMinify: true,
   env: {
     GOOGLE_CLIENT_ID: '',
-    GOOGLE_CLIENT_SECRET: ''
+    GOOGLE_CLIENT_SECRET: '',
+    V1_API_ENDPOINT: 'http://127.0.0.1:8000/api/v1',
+    SECRET: 'MYSECRET' // can get secret from here : https://generate-secret.vercel.app/64
   }
 }
 

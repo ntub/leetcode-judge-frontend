@@ -1,11 +1,52 @@
-import Link from "next/link";
-import { useSession, signIn } from 'next-auth/react'
+import { useState, useEffect } from "react";
+import { signIn, getSession, signOut } from 'next-auth/react'
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 
+import refreshToken from '../components/auth_service'
 
-function Home() {
-    const { data: session } = useSession();
+export default function Home({ session }: any) {
+    const [submission, setSubmission] = useState();
+    const [announcement, setAnnouncement] = useState();
 
-    if(!session) {
+    useEffect(() => {
+        if (!session?.user.access_token) return
+
+        fetch(
+            process.env.V1_API_ENDPOINT + '/bulletin/announcements?page=1&page_size=10&ordering=-created',
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.user.access_token}`
+                }
+            }
+        )
+            .then((res) => res.json())
+            .then((res) => {
+                const { count, results } = res
+                setAnnouncement({
+                    count,
+                    datas: results
+                })
+            })
+            .catch(_error => setAnnouncement({ count: 0, datas: [] }))
+
+        fetch(
+            process.env.V1_API_ENDPOINT + '/record/submissions?page_size=4&ordering=-created',
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.user.access_token}`
+                }
+            }
+        )
+            .then((res) => res.json())
+            .then((res) => setSubmission(res))
+    }, [session]);
+
+    if (!session) {
         return (
             <div className="w-full h-screen flex flex-col justify-center items-center">
                 <button onClick={signIn} className='px-4 py-2 border rounded border-gray-700 hover:bg-gray-700 hover:text-white'>使用者登入</button>
@@ -15,6 +56,36 @@ function Home() {
             </div>
         )
     }
+
+    let chart: any = {
+        total: 0,
+        accepted: 0,
+        waiting: 0,
+        Easy: {
+            total: 0,
+            accepted: 0,
+            waiting: 0,
+        },
+        Medium: {
+            total: 0,
+            accepted: 0,
+            waiting: 0,
+        },
+        Hard: {
+            total: 0,
+            accepted: 0,
+            waiting: 0,
+        }
+    }
+
+    for (let data of (submission?.results || [])) {
+        chart[data.question.difficulty]['total'] += 1
+        chart[data.question.difficulty][data.verify_status] += 1
+
+        chart.total += 1
+        chart[data.verify_status] += 1
+    }
+
     return (
         <div className="mt-4 grow flex flex-col items-center">
             <div className="w-4/5 my-4">
@@ -23,83 +94,46 @@ function Home() {
                     <span>公告 Announcement</span>
                 </h2>
                 <div className="border rounded border-black">
-                    <a href="./announcement-detail.html" className="px-2 py-3 flex flex-col lg:flex-row border-b border-gray-600 hover:bg-gray-200">
-                        <span className="ml-4 lg:text-center">2022-07-22</span>
-                        <div className="flex ml-4">
-                            <span className="text-sm text-red-600 mr-2">new</span>
-                            <span className="truncate">111學年度國軍退除役官兵就讀大學暨技術校院二年制進修部(夜二技)甄試-錄取名單公告</span>
-                        </div>
-                    </a>
-                    <a href="#anno1" className="px-2 py-3 flex flex-col lg:flex-row border-b border-gray-600 hover:bg-gray-200">
-                        <span className="ml-4 lg:text-center">2022-07-21</span>
-                        <div className="flex ml-4">
-                            <span className="text-sm text-red-600 mr-2">new</span>
-                            <span className="truncate">111 年【數位行銷】教師研習課程</span>
-                        </div>
-                    </a>
-                    <a href="#anno1" className="px-2 py-3 flex flex-col lg:flex-row border-b border-gray-600 hover:bg-gray-200">
-                        <span className="ml-4 lg:text-center">2022-07-21</span>
-                        <div className="flex ml-4">
-                            <span className="text-sm text-red-600 mr-2">new</span>
-                            <span className="truncate">【就輔組公告】【填問卷•抽好禮】109、107及105學年度畢業生畢業流向問卷抽獎活動開跑囉</span>
-                        </div>
-                    </a>
-                    <a href="#anno1" className="px-2 py-3 flex flex-col lg:flex-row border-b border-gray-600 hover:bg-gray-200">
-                        <span className="ml-4 lg:text-center">2022-07-15</span>
-                        <div className="flex ml-4">
-                            <span className="truncate">第一次公告-111學年度北區五專聯合免試入學達現場分發資格名單</span>
-                        </div>
-                    </a>
-                    <a href="#anno1" className="px-2 py-3 flex flex-col lg:flex-row border-b border-gray-600 hover:bg-gray-200">
-                        <span className="ml-4 lg:text-center">2022-07-14</span>
-                        <div className="flex ml-4">
-                            <span className="truncate">【臺北校區】111年度 (第1期)「地政士證照考試輔導班」111/7/20 (三) 確定開班~截止報名</span>
-                        </div>
-                    </a>
-                    <a href="#anno1" className="px-2 py-3 flex flex-col lg:flex-row border-b border-gray-600 hover:bg-gray-200">
-                        <span className="ml-4 lg:text-center">2022-07-22</span>
-                        <div className="flex ml-4">
-                            <span className="text-sm text-red-600 mr-2">new</span>
-                            <span className="truncate">111學年度國軍退除役官兵就讀大學暨技術校院二年制進修部(夜二技)甄試-錄取名單公告</span>
-                        </div>
-                    </a>
-                    <a href="#anno1" className="px-2 py-3 flex flex-col lg:flex-row border-b border-gray-600 hover:bg-gray-200">
-                        <span className="ml-4 lg:text-center">2022-07-21</span>
-                        <div className="flex ml-4">
-                            <span className="text-sm text-red-600 mr-2">new</span>
-                            <span className="truncate">111 年【數位行銷】教師研習課程</span>
-                        </div>
-                    </a>
-                    <a href="#anno1" className="px-2 py-3 flex flex-col lg:flex-row border-b border-gray-600 hover:bg-gray-200">
-                        <span className="ml-4 lg:text-center">2022-07-21</span>
-                        <div className="flex ml-4">
-                            <span className="text-sm text-red-600 mr-2">new</span>
-                            <span className="truncate">【就輔組公告】【填問卷•抽好禮】109、107及105學年度畢業生畢業流向問卷抽獎活動開跑囉</span>
-                        </div>
-                    </a>
-                    <a href="#anno1" className="px-2 py-3 flex flex-col lg:flex-row border-b border-gray-600 hover:bg-gray-200">
-                        <span className="ml-4 lg:text-center">2022-07-15</span>
-                        <div className="flex ml-4">
-                            <span className="truncate">第一次公告-111學年度北區五專聯合免試入學達現場分發資格名單</span>
-                        </div>
-                    </a>
-                    <a href="#anno1" className="px-2 py-3 flex flex-col lg:flex-row border-b border-gray-600 hover:bg-gray-200">
-                        <span className="ml-4 lg:text-center">2022-07-14</span>
-                        <div className="flex ml-4">
-                            <span className="truncate">【臺北校區】111年度 (第1期)「地政士證照考試輔導班」111/7/20 (三) 確定開班~截止報名</span>
-                        </div>
-                    </a>
-                    <div className="w-full h-10 flex justify-center items-center">
-                        <a href="./announcement.html" className="hover:border-b hover:border-gray-500">
-                            more...
-                        </a>
-                    </div>
+                    {
+                        announcement?.count === 0 ?
+                            <span className="block px-2 py-3">
+                                目前沒有任何公告
+                            </span>
+                            :
+                            <>
+                                {
+                                    announcement?.datas.map(announcement => {
+                                        const {
+                                            title,
+                                            created,
+                                        } = announcement
+
+                                        const announcementDate = new Date(created)
+                                        const showNewLabel = (new Date() - announcementDate) < 7 * 24 * 3600 * 1000 // 1 week
+                                        return (
+                                            <a href={`./announcements/${announcement.id}`} className="px-2 py-3 flex flex-col lg:flex-row border-b last:border-b-0 border-gray-600 hover:bg-gray-200" key={announcement.id}>
+                                                <span className="ml-4 lg:text-center">{announcementDate.toLocaleDateString()}</span>
+                                                <div className="flex ml-4">
+                                                    {showNewLabel ? <span className="text-sm text-red-600 mr-2 flex items-center">new</span> : null}
+                                                    <span className="truncate">{title}</span>
+                                                </div>
+                                            </a>
+                                        )
+                                    })
+                                }
+                                <div className="w-full h-10 flex justify-center items-center">
+                                    <a href="/announcements" className="hover:border-b hover:border-gray-500">
+                                        more...
+                                    </a>
+                                </div>
+                            </>
+                    }
                 </div>
             </div>
 
-            <div className="w-4/5 my-4 flex flex-col lg:flex-row">
-                <div className="lg:w-1/2 lg:my-0 my-2 py-2 px-4 border rounded border-gray-600 flex flex-col">
-                    <span className="mt-4 text-md text-gray-700">Solved Problems</span>
+            <div className="w-4/5 flex flex-col lg:flex-row">
+                <div className="w-full lg:w-1/2 my-4 py-2 mr-2 px-4 border rounded border-gray-600 flex flex-col">
+                    <span className="mt-4 text-md text-gray-700">Submission Verify Status</span>
                     <div className="flex flex-col md:flex-row justify-center items-center">
                         <div className="w-full md:w-1/2 relative flex justify-center items-center">
                             <svg className="h-full w-full origin-center -rotate-90" viewBox="0 0 50 50">
@@ -121,13 +155,13 @@ function Home() {
                                     strokeWidth="2"
                                     strokeLinecap="round"
                                     strokeDasharray="100 100"
-                                    strokeDashoffset="63.33"
+                                    strokeDashoffset={(chart.waiting / chart.total * 100) || 100}
                                 ></circle>
                             </svg>
                             <div className="group absolute w-40">
                                 <div className="flex flex-col text-center">
-                                    <span className="group-hover:hidden text-3xl solved-count">44</span>
-                                    <span className="hidden group-hover:block text-3xl solved-percent pl-2">36.7%</span>
+                                    <span className="group-hover:hidden text-3xl solved-count">{chart.accepted}</span>
+                                    <span className="hidden group-hover:block text-3xl solved-percent pl-2">{((chart.total === 0) ? 0 : chart.accepted / chart.total * 100).toFixed(1)}%</span>
                                     <span className="text-sm">Solved</span>
                                 </div>
                             </div>
@@ -137,98 +171,101 @@ function Home() {
                                 <div className="flex">
                                     <span className="w-1/2 text-gray-500 text-sm">Easy</span>
                                     <div className="w-1/2 text-right">
-                                        <span className="font-bold text-l">30</span>
-                                        <span className="text-gray-400 text-sm"> / 60</span>
+                                        <span className="font-bold text-l">{chart.Easy.accepted}</span>
+                                        <span className="text-gray-400 text-sm"> / {chart.Easy.total}</span>
                                     </div>
                                 </div>
                                 <div className="flex">
                                     <span className="w-1/2 text-gray-500 text-sm">Beats</span>
-                                    <span className="w-1/2 text-right text-gray-800 text-sm font-bold">50.0%</span>
+                                    <span className="w-1/2 text-right text-gray-800 text-sm font-bold">{`${(chart.Easy.total === 0) ? 0 : Math.round((chart.Easy.accepted / chart.Easy.total * 100))}%`}</span>
                                 </div>
                                 <div className="relative">
                                     <span className="absolute border-2 border-green-200 w-full"></span>
-                                    <span className="absolute border-2 border-green-500" style={{ width: "50%" }}></span>
+                                    {
+                                        chart.Easy.total > 0 &&
+                                        <span className="absolute border-2 border-green-500" style={{ width: `${Math.round((chart.Easy.accepted / chart.Easy.total * 100))}%` }}></span>
+                                    }
                                 </div>
                             </div>
                             <div className="my-2">
                                 <div className="flex">
                                     <span className="w-1/2 text-gray-500 text-sm">Medium</span>
                                     <div className="w-1/2 text-right">
-                                        <span className="font-bold text-l">12</span>
-                                        <span className="text-gray-400 text-sm"> / 40</span>
+                                        <span className="font-bold text-l">{chart.Medium.accepted}</span>
+                                        <span className="text-gray-400 text-sm"> / {chart.Medium.total}</span>
                                     </div>
                                 </div>
                                 <div className="flex">
                                     <span className="w-1/2 text-gray-500 text-sm">Beats</span>
-                                    <span className="w-1/2 text-right text-gray-800 text-sm font-bold">30.0%</span>
+                                    <span className="w-1/2 text-right text-gray-800 text-sm font-bold">{`${(chart.Medium.total === 0) ? 0 : Math.round((chart.Medium.accepted / chart.Medium.total * 100))}%`}</span>
                                 </div>
                                 <div className="relative">
                                     <span className="absolute border-2 border-yellow-200 w-full"></span>
-                                    <span className="absolute border-2 border-yellow-500" style={{ width: '30%' }}></span>
+                                    {
+                                        chart.Medium.total > 0 &&
+                                        <span className="absolute border-2 border-yellow-500" style={{ width: `${Math.round((chart.Medium.accepted / chart.Medium.total * 100))}%` }}></span>
+                                    }
                                 </div>
                             </div>
                             <div className="my-2">
                                 <div className="flex">
                                     <span className="w-1/2 text-gray-500 text-sm">Hard</span>
                                     <div className="w-1/2 text-right">
-                                        <span className="pl-2 font-bold text-l">2</span>
-                                        <span className="text-gray-400 text-sm"> / 20</span>
+                                        <span className="pl-2 font-bold text-l">{chart.Hard.accepted}</span>
+                                        <span className="text-gray-400 text-sm"> / {chart.Hard.total}</span>
                                     </div>
                                 </div>
                                 <div className="flex">
                                     <span className="w-1/2 text-gray-500 text-sm">Beats</span>
-                                    <span className="w-1/2 text-right text-gray-800 text-sm font-bold">10.0%</span>
+                                    <span className="w-1/2 text-right text-gray-800 text-sm font-bold">{`${(chart.Hard.total === 0) ? 0 : Math.round((chart.Hard.accepted / chart.Hard.total * 100))}%`}</span>
                                 </div>
                                 <div className="relative">
                                     <span className="absolute border-2 border-red-200 w-full"></span>
-                                    <span className="absolute border-2 border-red-500" style={{ width: '10%' }}></span>
+                                    {
+                                        chart.Hard.total > 0 &&
+                                        <span className="absolute border-2 border-red-500" style={{ width: `${Math.round((chart.Hard.accepted / chart.Hard.total * 100))}%` }}></span>
+                                    }
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div className="lg:w-1/2 lg:ml-2 lg:my-0 my-2 p-2 border rounded border-gray-600">
+                <div className="w-full lg:w-1/2 my-4 py-2 ml-2 border rounded border-gray-600">
                     <div className="flex flex-col">
-                        <a href="#problem" className="py-1 px-2 border-b border-gray-400">
-                            <span className="w-10">審核</span>
-                            <span className="ml-4">題目</span>
-                        </a>
-                        <a href="#problem" className="py-1 px-2 flex flex-between hover:border-b hover:border-gray-400 truncate">
-                            <span className="w-10 ml-2">
-                                <i className="fa-solid fa-circle-check text-green-700"></i>
-                            </span>
-                            <span className="ml-2">1. Two Sum</span>
-                        </a>
-                        <a href="#problem" className="py-1 px-2 hover:border-b hover:border-gray-400 truncate">
-                            <span className="ml-14">2. Add Two Numbers</span>
-                        </a>
-                        <a href="#problem" className="py-1 px-2 flex flex-between hover:border-b hover:border-gray-400 truncate">
-                            <span className="w-10 ml-2">
-                                <i className="fa-solid fa-circle-check text-green-700"></i>
-                            </span>
-                            <span className="ml-2">6. Zigzag Conversion</span>
-                        </a>
-                        <a href="#problem" className="py-1 px-2 flex flex-between hover:border-b hover:border-gray-400 truncate">
-                            <span className="w-10 ml-2">
-                                <i className="fa-solid fa-circle-check text-green-700"></i>
-                            </span>
-                            <span className="ml-2">8. String to Integer (atoi)</span>
-                        </a>
-                        <a href="#problem" className="py-1 px-2 hover:border-b hover:border-gray-400 truncate">
-                            <span className="ml-14">315. Count of Smaller Numbers After Self</span>
-                        </a>
-                        <a href="#problem" className="py-1 px-2 hover:border-b hover:border-gray-400 truncate">
-                            <span className="ml-14">315. Count of Smaller Numbers After Self</span>
-                        </a>
-                        <a href="#problem" className="py-1 px-2 hover:border-b hover:border-gray-400 truncate">
-                            <span className="ml-14">315. Count of Smaller Numbers After Self</span>
-                        </a>
-                        <a href="#problem" className="py-1 px-2 hover:border-b hover:border-gray-400 truncate">
-                            <span className="ml-14">315. Count of Smaller Numbers After Self</span>
-                        </a>
-                        <div className="flex justify-end items-center pr-4">
-                            <a href="#more-info" className="hover:border-b hover:border-gray-500">more...</a>
+                        <div className="py-1 px-2 border-b border-gray-400 flex">
+                            <div className="w-20 text-center">審核狀態</div>
+                            <div className="ml-4">提交時間 / 題目</div>
                         </div>
+                        {
+                            submission?.count === 0 ?
+                                <span className="py-1 px-2">尚未提交任何成績</span>
+                                :
+                                <>
+                                    {
+                                        submission?.results.map(data => {
+                                            return (
+                                                <a href={`/submissions/${data.id}`} className="p-2 flex border-b last:border-b-0 border-gray-400 hover:bg-gray-200" key={data.id}>
+                                                    <div className="w-20 flex justify-center items-center">
+                                                        {
+                                                            data.verify_status === 'accepted' &&
+                                                            <FontAwesomeIcon icon={faCircleCheck} className='text-green-700' />
+                                                        }
+                                                    </div>
+                                                    <div className="ml-4 lg:ml-0">
+                                                        <div className="w-40 lg:ml-4">
+                                                            {data.created}
+                                                        </div>
+                                                        <div className="lg:ml-4 truncate">{data.question.title}</div>
+                                                    </div>
+                                                </a>
+                                            )
+                                        })
+                                    }
+                                    <div className="flex justify-end items-center pr-4 py-2">
+                                        <a href="/submissions" className="hover:border-b hover:border-gray-500">more...</a>
+                                    </div>
+                                </>
+                        }
                     </div>
                 </div>
             </div>
@@ -236,12 +273,14 @@ function Home() {
     );
 }
 
-{/* <Link 
-  href={{
-    pathname: "/posts/[postId]",
-    query: { postId: "1" },
-  }}
->
-  <a>切換至 pages/post/[postId].tsx</a>
-</Link> */}
-export default Home;
+export async function getServerSideProps(context: any) {
+    let session = await getSession(context)
+    session = await refreshToken(session)
+    if (!session) signOut()
+
+    return {
+        props: {
+            session
+        },
+    }
+}

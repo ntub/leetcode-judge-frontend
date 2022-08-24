@@ -7,7 +7,9 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'gray-700-rgba-50': 'rgba(55, 65, 81, 0.5)',
+        'alert-bg-green': '#d4edda',
+        'alert-border-green': '#c3e6cb',
+        'alert-text-green': '#155724',
       },
     },
   },
