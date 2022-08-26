@@ -39,3 +39,4 @@ tmp/
 
 # config
 *next.config.js
+.env
