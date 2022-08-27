@@ -6,7 +6,8 @@ const nextConfig = {
     GOOGLE_CLIENT_ID: '<GOOGLE_CLIENT_ID>',
     GOOGLE_CLIENT_SECRET: '<GOOGLE_CLIENT_SECRET>',
     V1_API_ENDPOINT: '<API_ENDPOINT>',
-    SECRET: '<SECRET>' // can get secret from here : https://generate-secret.vercel.app/64
+    SECRET: '<SECRET>', // can get secret from here : https://generate-secret.vercel.app/64
+    NEXTAUTH_URL: 'https://leetcode-judge.ntub.edu.tw/'
   },
   typescript: {
     ignoreBuildErrors: true,
