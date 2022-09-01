@@ -47,7 +47,7 @@ export default function Nav() {
             </div>
             {
                 session?.user.access_token &&
-                <div id="dropdown" className="fixed w-full lg:w-auto lg:right-6 border border-gray-500 bg-white hidden lg:hidden">
+                <div id="dropdown" className="fixed w-full lg:w-auto lg:right-6 border border-gray-500 bg-white hidden lg:hidden z-10">
                     <div className="flex flex-col">
                         <a href='/submissions/new' className="py-2 pl-4 pr-20 border border-gray-300 hover:bg-gray-200 lg:hidden text-left">
                             <FontAwesomeIcon icon={faFileArrowUp} className='mr-4' />

@@ -1,3 +1,5 @@
+import Select from 'react-select'
+
 import { useState, useEffect } from "react";
 import { useSession } from 'next-auth/react'
 import { signIn } from 'next-auth/react'
@@ -8,6 +10,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 const toggleAlert = () => { notify.classList.toggle('hidden') }
+let lang:string;
+let question:string;
 
 export default function UploadRecord() {
   const { data: session } = useSession()
@@ -69,11 +73,11 @@ export default function UploadRecord() {
       <div className="bg-white rounded w-3/4 h-10/12 p-6">
         <form id='recordForm' onSubmit={submitForm} className="flex flex-col">
           <input type="hidden" defaultValue={session?.user.access_token} id='token' />
-          <label htmlFor='problemTitle' className="text-lg font-bold">題目 *</label>
-          <select id='problemTitle' className="border border-gray-700 rounded text-lg h-12 px-4 mt-2" required>
-            <option></option>
-            {problem?.map(data => <option value={data.title_slug} key={data.title_slug}>{data.title}</option>)}
-          </select>
+          <label className="text-lg font-bold">題目 *</label>
+          <Select className="border border-gray-500 rounded text-lg mt-2"
+                  onChange={changeQuestion}
+                  options={problem?.map(data => { return { value: data.title_slug, label: data.title } })} 
+                  required />
 
           <label htmlFor="difficulty" className="text-lg font-bold mt-4">
             難易度 *
@@ -91,11 +95,11 @@ export default function UploadRecord() {
           <label htmlFor="solvedAt" className="text-lg font-bold mt-4">解題日期 *</label>
           <input type="datetime" id="solvedAt" className="border border-gray-700 rounded mt-2 py-2 px-4" placeholder="yyyy-mm-dd" required />
 
-          <label htmlFor='codingLanguage' className="text-lg font-bold mt-4">語言 *</label>
-          <select id='codingLanguage' className="border border-gray-700 rounded text-lg h-12 px-4 mt-2" required>
-            <option></option>
-            {language?.map(data => <option value={data.slug} key={data.slug}>{data.name}</option>)}
-          </select>
+          <label className="text-lg font-bold mt-4">語言 *</label>
+          <Select className="border border-gray-500 rounded text-lg mt-2"
+                  onChange={changeLanguage}
+                  options={language?.map(data => { return { value: data.slug, label: data.name } })} 
+                  required />
 
           <label htmlFor='sourceCode' className="text-lg font-bold mt-4">原始碼 *</label>
           <textarea id='sourceCode' rows={6} className="border border-gray-700 rounded mt-2 p-4" required></textarea>
@@ -140,9 +144,9 @@ const submitForm = (event: any) => {
   }
 
   const data = new FormData(recordForm);
-  data.append('question_title_slug', problemTitle.value)
+  data.append('question_title_slug', question)
   data.append('difficulty', difficulty.value)
-  data.append('lang_slug', codingLanguage.value)
+  data.append('lang_slug', lang)
   data.append('source_code', sourceCode.value)
   data.append('solved', solvedAt.value)
   data.append('snapshot', problemResultFile.files[0])
@@ -166,9 +170,7 @@ const submitForm = (event: any) => {
       return res.json()
     })
     .then((res) => {
-      problemTitle.value = ''
       problemResult.value = ''
-      codingLanguage.value = ''
       sourceCode.value = ''
       solvedAt.value = ''
       problemResultFile.value = ''
@@ -179,3 +181,6 @@ const submitForm = (event: any) => {
       console.log(error)
     })
 }
+
+const changeLanguage = event => { lang = event.value }
+const changeQuestion = event => { question = event.value }
