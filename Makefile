@@ -9,8 +9,6 @@ MAKEFLAGS += --no-builtin-rules
 include .env
 $(eval export $(shell sed -ne 's/ *#.*$$//; /./ s/=.*$$// p' .env))
 
-SECRET := $(shell curl https://generate-secret.vercel.app/64)
-
 COMMA := ,
 
 PROJECT_NAME := $(shell echo $(notdir $(CURDIR)) | sed -e 's/_/-/g')
@@ -28,6 +26,14 @@ build: Dockerfile  ## Build docker image
 
 genconfig: 
 	sed -e 's#<API_ENDPOINT>#$(API_ENDPOINT)#g' \
+		-e 's#<SENTRY_DSN>#$(SENTRY_DSN)#g' \
+		-e 's#<SENTRY_ENV>#$(SENTRY_ENV)#g' \
+		-e 's#<NEXTAUTH_URL>#$(NEXTAUTH_URL)#g' \
+		-e 's#<SENTRY_URL>#$(SENTRY_URL)#g' \
+		-e 's#<SENTRY_ORG>#$(SENTRY_ORG)#g' \
+		-e 's#<SENTRY_PROJECT>#$(SENTRY_PROJECT)#g' \
+		-e 's#<SENTRY_AUTH_TOKEN>#$(SENTRY_AUTH_TOKEN)#g' \
+		-e 's#<SENTRY_RELEASE>#$(CURRENT_BRANCH)@$(CURRENT_VERSION)#g' \
 		-e 's/<GOOGLE_CLIENT_ID>/$(GOOGLE_CLIENT_ID)/g' \
 		-e 's/<GOOGLE_CLIENT_SECRET>/$(GOOGLE_CLIENT_SECRET)/g' \
 		-e 's/<SECRET>/$(SECRET)/g' \
