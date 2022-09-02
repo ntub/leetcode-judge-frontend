@@ -1,3 +1,5 @@
+import Select from 'react-select'
+
 import { useRouter } from 'next/router'
 import { useState, useEffect } from "react";
 import { signIn, getSession } from 'next-auth/react'
@@ -25,6 +27,7 @@ const parseRuntimeOrMemory = input => {
 }
 const parseRuntimeOrMemoryRating = input => input * 100;
 const toggleAlert = () => { notify.classList.toggle('hidden') }
+let lang:string;
 
 export default function Announcement({ session }: any) {
   const router = useRouter()
@@ -74,6 +77,8 @@ export default function Announcement({ session }: any) {
   }
 
   if (submission?.verify_status === 'accepted') { window.location.href = `/submissions/${id}` }
+  lang = submission?.lang.slug
+
   return (
     <div className="w-4/5 my-4 mx-auto flex flex-col pb-24">
       <div id="notify" className='fixed flex justify-between items-center border border-alert-border-green rounded bg-alert-bg-green text-alert-text-green w-64 h-16 top-16 right-10 p-2 hidden'>
@@ -101,6 +106,17 @@ export default function Announcement({ session }: any) {
       <input type="hidden" id="question_slug" defaultValue={submission?.question.title_slug} />
       <input type="hidden" id="submissionId" defaultValue={submission?.id} />
 
+      <div className="flex">
+        <div className='w-full flex mr-2 flex-col'>
+          <label htmlFor='created' className="text-lg font-bold mt-4">提交時間</label>
+          <input type="datetime" id="created" className="border border-gray-700 rounded mt-2 p-4 cursor-default bg-gray-200" defaultValue={submission?.created} readOnly={true} />
+        </div>
+        <div className='w-full flex ml-2 flex-col'>
+          <label htmlFor='modified' className="text-lg font-bold mt-4">最後編輯時間</label>
+          <input type="datetime" id="modified" className="border border-gray-700 rounded mt-2 p-4 cursor-default bg-gray-200" defaultValue={submission?.modified} readOnly={true} />
+        </div>
+      </div>
+
       <label htmlFor="difficulty" className="text-lg font-bold mt-4">
         難易度 *
         <span className='text-sm ml-2'>最簡單：1、最難：5</span>
@@ -116,21 +132,15 @@ export default function Announcement({ session }: any) {
       <label htmlFor="verify_status" className="text-lg font-bold mt-4">審核狀態</label>
       <input type="text" id="verify_status" className="border border-gray-700 rounded mt-2 p-4 cursor-default bg-gray-200" defaultValue={verifyStatus(submission?.verify_status)} readOnly={true} />
 
-      <div className="flex">
-        <div className='w-full flex mr-2 flex-col'>
-          <label htmlFor='created' className="text-lg font-bold mt-4">提交時間</label>
-          <input type="datetime" id="created" className="border border-gray-700 rounded mt-2 p-4 cursor-default bg-gray-200" defaultValue={submission?.created} readOnly={true} />
-        </div>
-        <div className='w-full flex ml-2 flex-col'>
-          <label htmlFor='modified' className="text-lg font-bold mt-4">最後編輯時間</label>
-          <input type="datetime" id="modified" className="border border-gray-700 rounded mt-2 p-4 cursor-default bg-gray-200" defaultValue={submission?.modified} readOnly={true} />
-        </div>
-      </div>
+      <label htmlFor="solvedAt" className="text-lg font-bold mt-4">解題日期 *</label>
+      <input type="datetime" id="solvedAt" className="border border-gray-700 rounded mt-2 py-2 px-4" placeholder="yyyy-mm-dd" value={submission?.solved} required />
 
-      <label htmlFor="language" className="text-lg font-bold mt-4">語言 *</label>
-      <select id='language' className="border border-gray-700 rounded text-lg h-12 px-4 mt-2" required>
-        {language?.map(data => <option value={data.slug} key={data.slug} selected={data.slug === submission?.lang.slug}>{data.name}</option>)}
-      </select>
+      <label className="text-lg font-bold mt-4">語言 *</label>
+      <Select className="border border-gray-500 rounded text-lg mt-2"
+              onChange={changeLanguage}
+              options={language?.map(data => { return { value: data.slug, label: data.name } })}
+              value={{ value: submission?.lang.slug, label: submission?.lang.name }}
+              required />
 
       <label htmlFor="sourceCode" className="text-lg font-bold mt-4">原始碼 *</label>
       <textarea id="sourceCode" rows={6} className="border border-gray-700 rounded mt-2 p-4" defaultValue={submission?.source_code} required />
@@ -184,10 +194,12 @@ export default function Announcement({ session }: any) {
 
 const formSubmit = () => {
   const data = new FormData();
+  data.append('id', submissionId.value)
+  data.append('question_title_slug', question_slug.value)
   data.append('difficulty', difficulty.value)
-  data.append('lang_slug', language.value)
+  data.append('lang_slug', lang)
   data.append('source_code', sourceCode.value)
-  data.append('solved', created.value)
+  data.append('solved', solvedAt.value)
   if(!!runtime.value) data.append('runtime', parseInt(runtime.value))
   if(!!runtimeRating.value) data.append('runtime_rating', parseFloat(runtimeRating.value)/ 100)
   if(!!memory.value) data.append('memory', parseInt(memory.value))
@@ -225,3 +237,5 @@ export async function getServerSideProps(context: any) {
     },
   }
 }
+
+const changeLanguage = event => { lang = event.value }
